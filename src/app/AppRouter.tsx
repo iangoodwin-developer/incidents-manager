@@ -4,6 +4,7 @@ import React, { Suspense } from 'react';
 import { HashRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { Catalog, Incident } from '../shared/types';
 import { useIncidentSocket, ConnectionStatus } from '../features/incidents/hooks/useIncidentSocket';
+import { ErrorBoundary } from '../shared/components/ErrorBoundary/ErrorBoundary';
 
 const CreateIncidentPage = React.lazy(() =>
   import('../features/incidents/pages/CreateIncidentPage').then((module) => ({
@@ -103,37 +104,43 @@ export const AppRouter: React.FC = () => {
           <Route
             path="/"
             element={
-              <IncidentsRoute
-                incidents={incidents}
-                catalog={catalog}
-                connectionStatus={connectionStatus}
-                updateIncident={updateIncident}
-                lastError={lastError}
-              />
+              <ErrorBoundary>
+                <IncidentsRoute
+                  incidents={incidents}
+                  catalog={catalog}
+                  connectionStatus={connectionStatus}
+                  updateIncident={updateIncident}
+                  lastError={lastError}
+                />
+              </ErrorBoundary>
             }
           />
           <Route
             path="/create"
             element={
-              <CreateIncidentRoute
-                catalog={catalog}
-                connectionStatus={connectionStatus}
-                sendIncident={sendIncident}
-                lastError={lastError}
-              />
+              <ErrorBoundary>
+                <CreateIncidentRoute
+                  catalog={catalog}
+                  connectionStatus={connectionStatus}
+                  sendIncident={sendIncident}
+                  lastError={lastError}
+                />
+              </ErrorBoundary>
             }
           />
           <Route
             path="/incident/:incidentId"
             element={
-              <IncidentDetailRoute
-                incidents={incidents}
-                catalog={catalog}
-                connectionStatus={connectionStatus}
-                readingIntervalMs={readingIntervalMs}
-                setReadingIntervalMs={setReadingIntervalMs}
-                lastError={lastError}
-              />
+              <ErrorBoundary>
+                <IncidentDetailRoute
+                  incidents={incidents}
+                  catalog={catalog}
+                  connectionStatus={connectionStatus}
+                  readingIntervalMs={readingIntervalMs}
+                  setReadingIntervalMs={setReadingIntervalMs}
+                  lastError={lastError}
+                />
+              </ErrorBoundary>
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />

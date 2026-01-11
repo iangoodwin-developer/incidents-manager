@@ -375,6 +375,38 @@
   font-size: 0.9rem;
 }
 
+.error-boundary {
+  padding: 2rem;
+  background: #fff;
+  border: 1px solid #e4e7eb;
+  border-radius: 12px;
+  color: #1f2933;
+
+  &__title {
+    margin: 0 0 0.5rem;
+    font-size: 1.4rem;
+  }
+
+  &__message {
+    margin: 0 0 1rem;
+    color: #52606d;
+  }
+
+  &__button {
+    border: none;
+    padding: 0.6rem 1.1rem;
+    border-radius: 8px;
+    background: #1d4ed8;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      background: #1e40af;
+    }
+  }
+}
+
 /* responsive tweaks */
 
 @media (max-width: 768px) {
