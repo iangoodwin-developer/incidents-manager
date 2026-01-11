@@ -1,0 +1,28 @@
+/*
+  connection status banner for list/create/detail pages
+*/
+
+.connection-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+
+  &__title {
+    font-weight: 700;
+  }
+
+  &__message {
+    color: #52606d;
+  }
+
+  &--warning {
+    background: #fff7ed;
+    border-color: #fdba74;
+    color: #9a3412;
+  }
+}

@@ -1,0 +1,139 @@
+/*
+  incident chart styles (css only bars)
+  bem naming keeps chart styling scoped n predictable
+*/
+
+.incident-chart {
+  padding: 1.5rem;
+  background: #fff;
+  border: 1px solid #e4e7eb;
+  border-radius: 12px;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1rem;
+    color: #243b53;
+  }
+
+  &__subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.8rem;
+    color: #7b8794;
+  }
+
+  &__values {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  &__value {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+  }
+
+  &__value-label {
+    font-size: 0.8rem;
+    color: #52606d;
+  }
+
+  &__value-number {
+    font-size: 1rem;
+
+    &--rising {
+      color: #0b7849;
+    }
+
+    &--falling {
+      color: #b91c1c;
+    }
+
+    &--steady {
+      color: #334e68;
+    }
+  }
+
+  &__value-arrow {
+    font-size: 1rem;
+    color: #52606d;
+  }
+
+  &__legend {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    color: #52606d;
+  }
+
+  &__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  &__legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+
+    &--temp {
+      background: #3b82f6;
+    }
+
+    &--pressure {
+      background: #a855f7;
+    }
+  }
+
+  &__series {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  &__bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.35rem;
+    height: 120px;
+    padding: 0.5rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    border-radius: 8px;
+    border: 1px solid #e4e7eb;
+  }
+
+  &__bar {
+    flex: 1;
+    min-width: 6px;
+    border-radius: 6px 6px 2px 2px;
+    transition: height 0.4s ease;
+
+    &--temp {
+      background: #3b82f6;
+    }
+
+    &--pressure {
+      background: #a855f7;
+    }
+  }
+
+  &__empty {
+    margin: 0;
+    color: #7b8794;
+  }
+
+  &__caption {
+    margin: 0.75rem 0 0;
+    font-size: 0.8rem;
+    color: #7b8794;
+  }
+}

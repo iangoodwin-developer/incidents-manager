@@ -1,0 +1,11 @@
+export declare const incidentsSection: string;
+export declare const incidentsSectionAction: string;
+export declare const incidentsSectionActions: string;
+export declare const incidentsSectionEmpty: string;
+export declare const incidentsSectionHint: string;
+export declare const incidentsSectionLink: string;
+export declare const incidentsSectionMuted: string;
+export declare const incidentsSectionRow: string;
+export declare const incidentsSectionShowMore: string;
+export declare const incidentsSectionTable: string;
+export declare const incidentsSectionTitle: string;
