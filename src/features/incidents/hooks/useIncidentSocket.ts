@@ -42,6 +42,9 @@ const incidentsReducer = (state: Incident[], action: IncidentAction) => {
 type UseIncidentSocketOptions = {
   socketUrl?: string;
   socketFactory?: (url: string) => WebSocket;
+  onConnect?: () => void;
+  onDisconnect?: () => void;
+  onError?: (message: string) => void;
 };
 
 export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
@@ -55,6 +58,9 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
   const pendingIntervalRef = useRef<number | null>(null);
   const intervalTimeoutRef = useRef<number | null>(null);
   const suppressIntervalRequestRef = useRef(false);
+  const onConnect = options.onConnect ?? (() => console.info('[ws] connected'));
+  const onDisconnect = options.onDisconnect ?? (() => console.info('[ws] disconnected'));
+  const onError = options.onError ?? ((message: string) => console.warn('[ws] error', message));
 
   const clearIntervalTimeout = () => {
     if (intervalTimeoutRef.current !== null) {
@@ -90,7 +96,9 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
     // shared schema validation keeps client/server aligned at runtime
     const parsedResult = ServerMessageSchema.safeParse(parsed);
     if (!parsedResult.success) {
-      setLastError('Received an unexpected message shape from the server.');
+      const message = 'Received an unexpected message shape from the server.';
+      setLastError(message);
+      onError(message);
       return;
     }
     const payload = parsedResult.data;
@@ -98,7 +106,9 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
     if (payload.type === 'init') {
       // if protocol version changes, surface it instead of failing silently
       if (payload.protocolVersion && payload.protocolVersion !== PROTOCOL_VERSION) {
-        setLastError(`Protocol mismatch: expected ${PROTOCOL_VERSION}, got ${payload.protocolVersion}.`);
+        const message = `Protocol mismatch: expected ${PROTOCOL_VERSION}, got ${payload.protocolVersion}.`;
+        setLastError(message);
+        onError(message);
       }
       // initial payload carries full catalog + current incident list
       if (payload.incidents) {
@@ -139,13 +149,19 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
         // sync local ui to server interval w/out re-requesting
         suppressIntervalRequestRef.current = true;
         setReadingIntervalMs(payload.intervalMs);
+        const message = `Server interval is ${payload.intervalMs}ms, expected ${readingIntervalMs}ms.`;
+        setLastError(message);
+        onError(message);
+        return;
       }
       setLastError(null);
     }
 
     if (payload.type === 'error') {
       // error channel from server so ui can surface issues
-      setLastError(payload.message ?? 'Unexpected server error.');
+      const message = payload.message ?? 'Unexpected server error.';
+      setLastError(message);
+      onError(message);
     }
   });
 
@@ -162,10 +178,14 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
       setLastError(null);
       // send current ui selected interval so server matches client control
       requestServerInterval(readingIntervalMs);
+      // lightweight analytics hook for connect events
+      onConnect();
     });
 
     socket.addEventListener('close', () => {
       setConnectionStatus('disconnected');
+      // lightweight analytics hook for disconnect events
+      onDisconnect();
     });
 
     socket.addEventListener('message', handleMessage);
