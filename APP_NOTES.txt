@@ -1,0 +1,61 @@
+Routing, Architecture, and Performance
+
+•	React.lazy/Suspense for code splitting in AppRouter.tsx. This follows “route-based code splitting” to reduce initial bundle size and improve load time.
+
+•	Organized the codebase into feature‑based folders (src/features, src/shared, src/app). This is “feature‑first modularization,” which improves scalability and ownership.
+
+•	Added dependency injection to useIncidentSocket (socketUrl/socketFactory) in useIncidentSocket.ts. This is testability via DI.
+
+•	Add an error boundary per route (catch UI crashes + show a fallback) in AppRouter.tsx. This is “fault isolation per route” so one page crash does not take down the entire app.
+
+Real‑Time Data and Robustness
+
+•	Centralized WebSocket state in useIncidentSocket to encapsulate side effects and expose a small API. This matches the “custom hook for side effects” pattern.
+
+•	Added server‑controlled reading interval with acknowledgments and error handling in useIncidentSocket.ts and server.js. This is “server as source of truth” with explicit acks.
+
+•	Added connection error surfacing and server error messages to the UI in list/detail/create pages. This is “user‑visible error states” and a good operational UX.
+
+•	Add lightweight analytics/logging hooks for WebSocket events (connect, disconnect, error) in useIncidentSocket.ts. This is “observability hooks” so you can attach logging without coupling UI logic.
+
+Shared Contract / Schema Safety
+
+•	Introduced Zod schemas in schema.ts and validated WebSocket messages on both client and server. This represents “shared schema + runtime validation,” preventing silent contract drift.
+
+•	Added protocol version checks in the client to catch mismatched versions early.
+
+UX and UI Behaviors
+
+•	Mobile‑first styling for Create Incident in App.scss, plus mobile‑only header hiding and a floating submit button on small screens. This follows “mobile‑first responsive design” and improves task completion on phones.
+
+•	Row click navigation with keyboard support in IncidentsSection.tsx. This follows “discoverable, accessible navigation.”
+
+•	Improved filter layout (side‑by‑side filters, single‑select Incident Types with “All”), and URL‑synced filters in IncidentsPage.tsx. This is “state encoded in URL” for shareability.
+
+Forms, Validation, and Accessibility
+
+•	Added front‑end and back‑end validation for Incident ID (pattern‑based) in CreateIncidentPage.tsx and server.js. This is “defense in depth.”
+
+•	Added ARIA attributes (aria-invalid, aria-describedby, aria-disabled) for better screen‑reader support in CreateIncidentPage.tsx.
+
+•	Add per‑field form validation and a success toast on create in CreateIncidentPage.tsx. This is “inline validation + user feedback” to reduce friction and confirm success.
+
+Testing
+
+•	Kept business logic in a pure function (getIncidentsByType) and wrote a unit test for it in incidentFilters.test.ts. This matches “test pure logic, avoid UI coupling.”
+
+Dev Experience
+
+•	Added typed CSS module generation script (styles:types) in package.json to keep class names type‑safe. This is “type‑safe styling DX.”
+
+•	Set VS Code default formatters in settings.json to keep formatting consistent across contributors.
+
+Cleanup / Simplification
+
+•	Updated WebSocket host to use window.location.hostname for mobile testing, enabling LAN access without changing code per environment.
+
+Todo
+
+•	Add unit tests for edge cases in getIncidentsByType and for the interval ack flow.
+
+•	Add a small “offline mode” state (queue updates while disconnected, retry on reconnect).
