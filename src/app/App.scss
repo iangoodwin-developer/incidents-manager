@@ -207,6 +207,24 @@
     font-size: 0.85rem;
     color: #b91c1c;
   }
+
+  &__toast {
+    margin: 0 0 1rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    background: #ecfdf3;
+    color: #166534;
+    font-size: 0.9rem;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+  }
+
+  &__toast--visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 600px) {

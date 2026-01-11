@@ -39,9 +39,13 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
   // form state lives locally so inputs stay controlled
   const [formState, setFormState] = useState<IncidentFormState>(createEmptyForm());
   const [incidentIdError, setIncidentIdError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const isSubmitDisabled = Boolean(incidentIdError);
+  const formRef = useRef<HTMLFormElement | null>(null);
   const submitButtonRef = useRef<HTMLButtonElement | null>(null);
   const [isSubmitFloating, setIsSubmitFloating] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const successTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     // prefill dropdowns w first catalog entries once data is loaded
@@ -64,6 +68,40 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
       incidentTypeId: prev.incidentTypeId || (catalog.incidentTypes ?? [])[0]?.id || '',
     }));
   }, [catalog]);
+
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current !== null) {
+        window.clearTimeout(successTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const validateForm = (state: IncidentFormState) => {
+    const errors: Record<string, string> = {};
+    if (!state.siteId) {
+      errors.siteId = 'Site is required.';
+    }
+    if (!state.assetId) {
+      errors.assetId = 'Asset is required.';
+    }
+    if (!state.alarmId) {
+      errors.alarmId = 'Alarm is required.';
+    }
+    if (!state.escalationLevelId) {
+      errors.escalationLevelId = 'Escalation level is required.';
+    }
+    if (!state.stateId) {
+      errors.stateId = 'State is required.';
+    }
+    if (!state.incidentTypeId) {
+      errors.incidentTypeId = 'Incident type is required.';
+    }
+    if (Number.isNaN(state.priority) || state.priority < 1 || state.priority > 5) {
+      errors.priority = 'Priority must be between 1 and 5.';
+    }
+    return errors;
+  };
 
   useEffect(() => {
     // show floating submit btn when real one scrolls off screen
@@ -92,6 +130,13 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
       }
       return { ...prev, [field]: value };
     });
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
 
     if (field === 'incidentId') {
       // frontend validation keeps obvious errors out before we send to server
@@ -113,6 +158,11 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
       return;
     }
     const incidentId = trimmedId || `inc-${Date.now()}`;
+    const errors = validateForm(formState);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
     const newIncident: Incident = {
       incidentId,
       siteId: formState.siteId,
@@ -134,6 +184,14 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
       priority: 1,
     }));
     setIncidentIdError(null);
+    setFieldErrors({});
+    setShowSuccess(true);
+    if (successTimeoutRef.current !== null) {
+      window.clearTimeout(successTimeoutRef.current);
+    }
+    successTimeoutRef.current = window.setTimeout(() => {
+      setShowSuccess(false);
+    }, 2000);
   };
 
   return (
@@ -150,9 +208,12 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
           {lastError}
         </div>
       ) : null}
+      <div className={`create-page__toast${showSuccess ? ' create-page__toast--visible' : ''}`}>
+        Incident created.
+      </div>
 
       <main className="create-page__content">
-        <form onSubmit={submitIncident} className="create-page__form">
+        <form ref={formRef} onSubmit={submitIncident} className="create-page__form">
           <label className="create-page__field">
             <span className="create-page__label">Incident ID (optional)</span>
             <input
@@ -173,6 +234,8 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
             <select
               value={formState.siteId}
               onChange={(event) => handleFormChange('siteId', event.target.value)}
+              aria-invalid={fieldErrors.siteId ? 'true' : 'false'}
+              aria-describedby={fieldErrors.siteId ? 'site-error' : undefined}
             >
               {(catalog.sites ?? []).map((site) => (
                 <option key={site.id} value={site.id}>
@@ -180,12 +243,19 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
                 </option>
               ))}
             </select>
+            {fieldErrors.siteId ? (
+              <span id="site-error" className="create-page__error" role="alert">
+                {fieldErrors.siteId}
+              </span>
+            ) : null}
           </label>
           <label className="create-page__field">
             <span className="create-page__label">Asset</span>
             <select
               value={formState.assetId}
               onChange={(event) => handleFormChange('assetId', event.target.value)}
+              aria-invalid={fieldErrors.assetId ? 'true' : 'false'}
+              aria-describedby={fieldErrors.assetId ? 'asset-error' : undefined}
             >
               {(catalog.assets ?? []).map((asset) => (
                 <option key={asset.id} value={asset.id}>
@@ -193,12 +263,19 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
                 </option>
               ))}
             </select>
+            {fieldErrors.assetId ? (
+              <span id="asset-error" className="create-page__error" role="alert">
+                {fieldErrors.assetId}
+              </span>
+            ) : null}
           </label>
           <label className="create-page__field">
             <span className="create-page__label">Alarm</span>
             <select
               value={formState.alarmId}
               onChange={(event) => handleFormChange('alarmId', event.target.value)}
+              aria-invalid={fieldErrors.alarmId ? 'true' : 'false'}
+              aria-describedby={fieldErrors.alarmId ? 'alarm-error' : undefined}
             >
               {(catalog.alarms ?? []).map((alarm) => (
                 <option key={alarm.alarmId} value={alarm.alarmId}>
@@ -206,6 +283,11 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
                 </option>
               ))}
             </select>
+            {fieldErrors.alarmId ? (
+              <span id="alarm-error" className="create-page__error" role="alert">
+                {fieldErrors.alarmId}
+              </span>
+            ) : null}
           </label>
           <label className="create-page__field">
             <span className="create-page__label">Priority</span>
@@ -215,13 +297,22 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
               max={5}
               value={formState.priority}
               onChange={(event) => handleFormChange('priority', event.target.value)}
+              aria-invalid={fieldErrors.priority ? 'true' : 'false'}
+              aria-describedby={fieldErrors.priority ? 'priority-error' : undefined}
             />
+            {fieldErrors.priority ? (
+              <span id="priority-error" className="create-page__error" role="alert">
+                {fieldErrors.priority}
+              </span>
+            ) : null}
           </label>
           <label className="create-page__field">
             <span className="create-page__label">State</span>
             <select
               value={formState.stateId}
               onChange={(event) => handleFormChange('stateId', event.target.value)}
+              aria-invalid={fieldErrors.stateId ? 'true' : 'false'}
+              aria-describedby={fieldErrors.stateId ? 'state-error' : undefined}
             >
               {INCIDENT_STATE_OPTIONS.map((option) => (
                 <option key={option.id} value={option.id}>
@@ -229,12 +320,19 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
                 </option>
               ))}
             </select>
+            {fieldErrors.stateId ? (
+              <span id="state-error" className="create-page__error" role="alert">
+                {fieldErrors.stateId}
+              </span>
+            ) : null}
           </label>
           <label className="create-page__field">
             <span className="create-page__label">Escalation level</span>
             <select
               value={formState.escalationLevelId}
               onChange={(event) => handleFormChange('escalationLevelId', event.target.value)}
+              aria-invalid={fieldErrors.escalationLevelId ? 'true' : 'false'}
+              aria-describedby={fieldErrors.escalationLevelId ? 'escalation-error' : undefined}
             >
               {(catalog.escalationLevels ?? []).map((level) => (
                 <option key={level.id} value={level.id}>
@@ -242,12 +340,19 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
                 </option>
               ))}
             </select>
+            {fieldErrors.escalationLevelId ? (
+              <span id="escalation-error" className="create-page__error" role="alert">
+                {fieldErrors.escalationLevelId}
+              </span>
+            ) : null}
           </label>
           <label className="create-page__field">
             <span className="create-page__label">Incident type</span>
             <select
               value={formState.incidentTypeId}
               onChange={(event) => handleFormChange('incidentTypeId', event.target.value)}
+              aria-invalid={fieldErrors.incidentTypeId ? 'true' : 'false'}
+              aria-describedby={fieldErrors.incidentTypeId ? 'type-error' : undefined}
             >
               {(catalog.incidentTypes ?? []).map((type) => (
                 <option key={type.id} value={type.id}>
@@ -255,6 +360,11 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
                 </option>
               ))}
             </select>
+            {fieldErrors.incidentTypeId ? (
+              <span id="type-error" className="create-page__error" role="alert">
+                {fieldErrors.incidentTypeId}
+              </span>
+            ) : null}
           </label>
           <button
             ref={submitButtonRef}
@@ -280,7 +390,9 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
           onClick={(event) => {
             if (isSubmitDisabled) {
               event.preventDefault();
+              return;
             }
+            formRef.current?.requestSubmit();
           }}
         >
           Send incident
