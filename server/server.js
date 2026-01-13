@@ -45,6 +45,8 @@ const alarms = [
   { alarmId: 'alarm-420', code: 'HV-420', description: 'BAS comms loss', legacyId: '420' }
 ];
 
+// APP_NOTES: Forms, Validation, and Accessibility
+// *** incident-id-pattern-validation
 const INCIDENT_ID_PATTERN = /^[a-z0-9-]{3,32}$/i;
 
 // seed incidents w/ a lil reading history
@@ -168,6 +170,8 @@ wss.on('connection', socket => {
       return;
     }
 
+    // APP_NOTES: Shared Contract / Schema Safety
+    // *** shared-schema-runtime-validation
     // shared schema validation so we only accept known shapes
     const parsed = ClientMessageSchema.safeParse(message);
     if (!parsed.success) {
@@ -202,6 +206,8 @@ wss.on('connection', socket => {
     }
 
     if (parsed.data.type === 'setReadingInterval') {
+      // APP_NOTES: Real-Time Data and Robustness
+      // *** server-source-of-truth interval-ack
       const nextInterval = Math.max(MIN_READING_INTERVAL_MS, Number(parsed.data.intervalMs));
       readingIntervalMs = nextInterval;
       if (readingIntervalId) {
@@ -229,3 +235,14 @@ const startReadingInterval = () =>
 readingIntervalId = startReadingInterval();
 
 console.log(`WebSocket server listening on ws://localhost:${PORT}`);
+
+/*
+APP_NOTES: Real-Time Data and Robustness
+- Added server-controlled reading interval with acknowledgments and error handling in server.js. This is "server as source of truth" with explicit acks.
+
+APP_NOTES: Shared Contract / Schema Safety
+- Introduced Zod schemas in schema.ts and validated WebSocket messages on both client and server. This represents "shared schema + runtime validation," preventing silent contract drift.
+
+APP_NOTES: Forms, Validation, and Accessibility
+- Added front-end and back-end validation for Incident ID (pattern-based) in CreateIncidentPage.tsx and server.js. This is "defense in depth."
+*/

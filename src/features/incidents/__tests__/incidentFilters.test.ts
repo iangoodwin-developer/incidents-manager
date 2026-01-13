@@ -1,3 +1,5 @@
+// APP_NOTES: Testing
+// *** unit-test-logic
 // unit test for core bucketing + filter rules
 // protects biz logic w/out coupling to ui
 
@@ -20,6 +22,8 @@ const buildIncident = (overrides: Partial<Incident>): Incident => ({
 });
 
 describe('getIncidentsByType', () => {
+  // APP_NOTES: Todo
+  // *** todo-edge-case-tests
   it('buckets incidents by status and applies escalation/incident type filters', () => {
     const incidents = [
       buildIncident({
@@ -51,3 +55,11 @@ describe('getIncidentsByType', () => {
     expect(filteredCompleted.map((item) => item.incidentId)).toEqual(['completed-1']);
   });
 });
+
+/*
+APP_NOTES: Testing
+- Kept business logic in a pure function (getIncidentsByType) and wrote a unit test for it in incidentFilters.test.ts. This matches "test pure logic, avoid UI coupling."
+
+APP_NOTES: Todo
+- Add unit tests for edge cases in getIncidentsByType and for the interval ack flow.
+*/

@@ -98,6 +98,7 @@
 /* create incident page styles */
 
 .create-page {
+  /* APP_NOTES: UX and UI Behaviors */
   .page-header {
     gap: 1rem;
 
@@ -180,6 +181,8 @@
   }
 
   &__floating-actions {
+    /* APP_NOTES: UX and UI Behaviors */
+    /* *** mobile-floating-submit */
     position: fixed;
     left: 0;
     right: 0;
@@ -234,6 +237,8 @@
   }
 
   .create-page {
+    /* APP_NOTES: UX and UI Behaviors */
+    /* *** mobile-first-create-incident */
     .page-header {
       display: none;
     }
@@ -438,3 +443,8 @@
     }
   }
 }
+
+/*
+APP_NOTES: UX and UI Behaviors
+- Mobile-first styling for Create Incident in App.scss, plus mobile-only header hiding and a floating submit button on small screens. This follows "mobile-first responsive design" and improves task completion on phones.
+*/

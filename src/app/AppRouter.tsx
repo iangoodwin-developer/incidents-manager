@@ -3,9 +3,13 @@
 import React, { Suspense } from 'react';
 import { HashRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { Catalog, Incident } from '../shared/types';
+// APP_NOTES: Routing, Architecture, and Performance
+// *** feature-first modularization
 import { useIncidentSocket, ConnectionStatus } from '../features/incidents/hooks/useIncidentSocket';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary/ErrorBoundary';
 
+// APP_NOTES: Routing, Architecture, and Performance
+// *** route-based code splitting
 const CreateIncidentPage = React.lazy(() =>
   import('../features/incidents/pages/CreateIncidentPage').then((module) => ({
     default: module.CreateIncidentPage,
@@ -42,19 +46,19 @@ const IncidentDetailRoute: React.FC<
   setReadingIntervalMs,
   lastError,
 }) => {
-  const { incidentId } = useParams();
-  const incident = incidents.find((item) => item.incidentId === incidentId);
-  return (
-    <IncidentDetailPage
-      incident={incident}
-      catalog={catalog}
-      connectionStatus={connectionStatus}
-      readingIntervalMs={readingIntervalMs}
-      setReadingIntervalMs={setReadingIntervalMs}
-      lastError={lastError}
-    />
-  );
-};
+    const { incidentId } = useParams();
+    const incident = incidents.find((item) => item.incidentId === incidentId);
+    return (
+      <IncidentDetailPage
+        incident={incident}
+        catalog={catalog}
+        connectionStatus={connectionStatus}
+        readingIntervalMs={readingIntervalMs}
+        setReadingIntervalMs={setReadingIntervalMs}
+        lastError={lastError}
+      />
+    );
+  };
 
 const IncidentsRoute: React.FC<
   SharedRouteProps & {
@@ -99,11 +103,14 @@ export const AppRouter: React.FC = () => {
 
   return (
     <HashRouter>
+      {/* *** todo-loading-icon */}
       <Suspense fallback={<p className="app__loading">Loading view...</p>}>
         <Routes>
           <Route
             path="/"
             element={
+              // *** fault isolation per route
+              // APP_NOTES: Routing, Architecture, and Performance
               <ErrorBoundary>
                 <IncidentsRoute
                   incidents={incidents}
@@ -118,6 +125,8 @@ export const AppRouter: React.FC = () => {
           <Route
             path="/create"
             element={
+              // *** fault isolation per route
+              // APP_NOTES: Routing, Architecture, and Performance
               <ErrorBoundary>
                 <CreateIncidentRoute
                   catalog={catalog}
@@ -131,6 +140,8 @@ export const AppRouter: React.FC = () => {
           <Route
             path="/incident/:incidentId"
             element={
+              // *** fault isolation per route
+              // APP_NOTES: Routing, Architecture, and Performance
               <ErrorBoundary>
                 <IncidentDetailRoute
                   incidents={incidents}
@@ -149,3 +160,13 @@ export const AppRouter: React.FC = () => {
     </HashRouter>
   );
 };
+
+/*
+APP_NOTES: Routing, Architecture, and Performance
+- React.lazy/Suspense for code splitting in AppRouter.tsx. This follows "route-based code splitting" to reduce initial bundle size and improve load time.
+- Organized the codebase into feature-based folders (src/features, src/shared, src/app). This is "feature-first modularization," which improves scalability and ownership.
+- Add an error boundary per route (catch UI crashes + show a fallback) in AppRouter.tsx. This is "fault isolation per route" so one page crash does not take down the entire app.
+
+APP_NOTES: Todo
+- Add a loading icon on pages.
+*/

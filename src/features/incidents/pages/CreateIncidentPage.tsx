@@ -28,6 +28,8 @@ interface CreateIncidentPageProps {
   lastError: string | null;
 };
 
+// APP_NOTES: Forms, Validation, and Accessibility
+// *** incident-id-pattern-validation
 const isIncidentIdValid = (value: string) => /^[a-z0-9-]{3,32}$/i.test(value);
 
 export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
@@ -46,6 +48,10 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
   const [isSubmitFloating, setIsSubmitFloating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const successTimeoutRef = useRef<number | null>(null);
+
+  /*   if (true) {
+      throw new Error('test error boundary');
+    } */
 
   useEffect(() => {
     // prefill dropdowns w first catalog entries once data is loaded
@@ -77,6 +83,8 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
     };
   }, []);
 
+  // APP_NOTES: Forms, Validation, and Accessibility
+  // *** per-field-validation
   const validateForm = (state: IncidentFormState) => {
     const errors: Record<string, string> = {};
     if (!state.siteId) {
@@ -203,11 +211,15 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
       </PageHeader>
 
       <ConnectionBanner status={connectionStatus} />
+      {/* APP_NOTES: Real-Time Data and Robustness */}
+      {/* *** user-visible-error-state */}
       {lastError ? (
         <div className="app-error" role="alert">
           {lastError}
         </div>
       ) : null}
+      {/* APP_NOTES: Forms, Validation, and Accessibility */}
+      {/* *** success-toast */}
       <div className={`create-page__toast${showSuccess ? ' create-page__toast--visible' : ''}`}>
         Incident created.
       </div>
@@ -216,6 +228,8 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
         <form ref={formRef} onSubmit={submitIncident} className="create-page__form">
           <label className="create-page__field">
             <span className="create-page__label">Incident ID (optional)</span>
+            {/* APP_NOTES: Forms, Validation, and Accessibility */}
+            {/* *** accessibility-aria */}
             <input
               type="text"
               value={formState.incidentId}
@@ -401,3 +415,13 @@ export const CreateIncidentPage: React.FC<CreateIncidentPageProps> = ({
     </div>
   );
 };
+
+/*
+APP_NOTES: Real-Time Data and Robustness
+- Added connection error surfacing and server error messages to the UI in create pages. This is "user-visible error states" and a good operational UX.
+
+APP_NOTES: Forms, Validation, and Accessibility
+- Added front-end and back-end validation for Incident ID (pattern-based) in CreateIncidentPage.tsx and server.js. This is "defense in depth."
+- Added ARIA attributes (aria-invalid, aria-describedby, aria-disabled) for better screen-reader support in CreateIncidentPage.tsx.
+- Add per-field form validation and a success toast on create in CreateIncidentPage.tsx. This is "inline validation + user feedback" to reduce friction and confirm success.
+*/

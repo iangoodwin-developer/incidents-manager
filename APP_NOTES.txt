@@ -12,6 +12,8 @@ Real‑Time Data and Robustness
 
 •	Centralized WebSocket state in useIncidentSocket to encapsulate side effects and expose a small API. This matches the “custom hook for side effects” pattern.
 
+•	Used useEffectEvent for the WebSocket message handler in useIncidentSocket.ts to keep a stable handler that still reads fresh state.
+
 •	Added server‑controlled reading interval with acknowledgments and error handling in useIncidentSocket.ts and server.js. This is “server as source of truth” with explicit acks.
 
 •	Added connection error surfacing and server error messages to the UI in list/detail/create pages. This is “user‑visible error states” and a good operational UX.
@@ -30,7 +32,7 @@ UX and UI Behaviors
 
 •	Row click navigation with keyboard support in IncidentsSection.tsx. This follows “discoverable, accessible navigation.”
 
-•	Improved filter layout (side‑by‑side filters, single‑select Incident Types with “All”), and URL‑synced filters in IncidentsPage.tsx. This is “state encoded in URL” for shareability.
+•	Added URL‑synced filters in IncidentsPage.tsx. This is “state encoded in URL” for shareability.
 
 Forms, Validation, and Accessibility
 
@@ -59,3 +61,4 @@ Todo
 •	Add unit tests for edge cases in getIncidentsByType and for the interval ack flow.
 
 •	Add a small “offline mode” state (queue updates while disconnected, retry on reconnect).
+

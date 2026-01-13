@@ -47,6 +47,8 @@ type UseIncidentSocketOptions = {
   onError?: (message: string) => void;
 };
 
+// APP_NOTES: Real-Time Data and Robustness
+// *** custom-hook-side-effects
 export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
   // store incidents + catalog as reactive state so ui updates
   const [incidents, dispatch] = useReducer(incidentsReducer, []);
@@ -58,6 +60,7 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
   const pendingIntervalRef = useRef<number | null>(null);
   const intervalTimeoutRef = useRef<number | null>(null);
   const suppressIntervalRequestRef = useRef(false);
+  // *** observability-hooks
   const onConnect = options.onConnect ?? (() => console.info('[ws] connected'));
   const onDisconnect = options.onDisconnect ?? (() => console.info('[ws] disconnected'));
   const onError = options.onError ?? ((message: string) => console.warn('[ws] error', message));
@@ -69,6 +72,8 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
     }
   };
 
+  // *** server-source-of-truth interval-ack
+  // APP_NOTES: Real-Time Data and Robustness
   const requestServerInterval = (nextInterval: number) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       pendingIntervalRef.current = nextInterval;
@@ -84,6 +89,7 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
 
   // useEffectEvent keeps handler stable while reading fresh state
   // like user controlled interval that server must confirm
+  // *** useEffectEvent-stable-handler
   const handleMessage = useEffectEvent((event: MessageEvent) => {
     // parse defensively so bad payloads dont crash the app
     let parsed: unknown;
@@ -94,6 +100,8 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
     }
 
     // shared schema validation keeps client/server aligned at runtime
+    // APP_NOTES: Shared Contract / Schema Safety
+    // *** shared-schema-runtime-validation
     const parsedResult = ServerMessageSchema.safeParse(parsed);
     if (!parsedResult.success) {
       const message = 'Received an unexpected message shape from the server.';
@@ -106,6 +114,8 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
     if (payload.type === 'init') {
       // if protocol version changes, surface it instead of failing silently
       if (payload.protocolVersion && payload.protocolVersion !== PROTOCOL_VERSION) {
+        // APP_NOTES: Shared Contract / Schema Safety
+        // *** protocol-version-guard
         const message = `Protocol mismatch: expected ${PROTOCOL_VERSION}, got ${payload.protocolVersion}.`;
         setLastError(message);
         onError(message);
@@ -142,14 +152,29 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
     }
 
     if (payload.type === 'readingIntervalUpdated') {
+      // APP_NOTES: Real-Time Data and Robustness
+      // *** server-source-of-truth interval-ack
       // server side ack proves interval change was applied
+      // *** todo-interval-ack-tests
       clearIntervalTimeout();
+      const pendingInterval = pendingIntervalRef.current;
       pendingIntervalRef.current = null;
-      if (payload.intervalMs !== readingIntervalMs) {
+
+      if (pendingInterval === null) {
+        // accept server changes initiated elsewhere (another view/tab)
+        if (payload.intervalMs !== readingIntervalMs) {
+          suppressIntervalRequestRef.current = true;
+          setReadingIntervalMs(payload.intervalMs);
+        }
+        setLastError(null);
+        return;
+      }
+
+      if (payload.intervalMs !== pendingInterval) {
         // sync local ui to server interval w/out re-requesting
         suppressIntervalRequestRef.current = true;
         setReadingIntervalMs(payload.intervalMs);
-        const message = `Server interval is ${payload.intervalMs}ms, expected ${readingIntervalMs}ms.`;
+        const message = `Server interval is ${payload.intervalMs}ms, expected ${pendingInterval}ms.`;
         setLastError(message);
         onError(message);
         return;
@@ -167,7 +192,9 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
 
   useEffect(() => {
     // establish persistent websocket connection on mount
+    // APP_NOTES: Cleanup / Simplification
     const socketHost = window.location.hostname || 'localhost';
+    // *** dependency-injection
     const socketUrl = options.socketUrl ?? `ws://${socketHost}:8080`;
     // allow dependency injection in tests so we can pass a fake socket impl
     const socket = options.socketFactory ? options.socketFactory(socketUrl) : new WebSocket(socketUrl);
@@ -205,6 +232,8 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
 
   // send a brand new incident to the server
   const sendIncident = (incident: Incident) => {
+    // APP_NOTES: Todo
+    // *** todo-offline-queue
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({ type: 'addIncident', incident }));
     }
@@ -230,3 +259,24 @@ export const useIncidentSocket = (options: UseIncidentSocketOptions = {}) => {
     updateIncident,
   };
 };
+
+/*
+APP_NOTES: Routing, Architecture, and Performance
+- Added dependency injection to useIncidentSocket (socketUrl/socketFactory) in useIncidentSocket.ts. This is testability via DI.
+
+APP_NOTES: Real-Time Data and Robustness
+- Centralized WebSocket state in useIncidentSocket to encapsulate side effects and expose a small API. This matches the "custom hook for side effects" pattern.
+- Added server-controlled reading interval with acknowledgments and error handling in useIncidentSocket.ts. This is "server as source of truth" with explicit acks.
+- Add lightweight analytics/logging hooks for WebSocket events (connect, disconnect, error) in useIncidentSocket.ts. This is "observability hooks" so you can attach logging without coupling UI logic.
+
+APP_NOTES: Shared Contract / Schema Safety
+- Introduced Zod schemas in schema.ts and validated WebSocket messages on both client and server. This represents "shared schema + runtime validation," preventing silent contract drift.
+- Added protocol version checks in the client to catch mismatched versions early.
+
+APP_NOTES: Cleanup / Simplification
+- Updated WebSocket host to use window.location.hostname for mobile testing, enabling LAN access without changing code per environment.
+
+APP_NOTES: Todo
+- Add unit tests for edge cases in getIncidentsByType and for the interval ack flow.
+- Add a small "offline mode" state (queue updates while disconnected, retry on reconnect).
+*/

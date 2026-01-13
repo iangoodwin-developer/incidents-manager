@@ -7,6 +7,8 @@ import { Incident } from '../../../shared/types';
 export type IncidentBucket = 'new' | 'active' | 'completed';
 
 // apply both filter controls (escalation/incident type) + bucket rules
+// APP_NOTES: Testing
+// *** pure-function-business-logic
 export const getIncidentsByType = (
   incidents: Incident[],
   type: IncidentBucket,
@@ -41,3 +43,8 @@ export const getIncidentsByType = (
     return incident.stateId === INCIDENT_STATES.CLOSED;
   });
 };
+
+/*
+APP_NOTES: Testing
+- Kept business logic in a pure function (getIncidentsByType) and wrote a unit test for it in incidentFilters.test.ts. This matches "test pure logic, avoid UI coupling."
+*/

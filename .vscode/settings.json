@@ -1,4 +1,6 @@
 {
+  // APP_NOTES: Dev Experience
+  // *** formatter-consistency
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
   "editor.formatOnType": false,
@@ -23,4 +25,6 @@
   "[css]": {
     "editor.defaultFormatter": "vscode.css-language-features"
   }
+  // APP_NOTES: Dev Experience
+  // - Set VS Code default formatters in settings.json to keep formatting consistent across contributors.
 }

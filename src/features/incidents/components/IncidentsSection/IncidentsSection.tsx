@@ -40,6 +40,8 @@ const IncidentRow = React.memo(
     actions: { label: string; target: 'new' | 'active' | 'completed' }[];
     onMoveIncident: (incidentId: string, target: 'new' | 'active' | 'completed') => void;
   }) => {
+    // APP_NOTES: UX and UI Behaviors
+    // *** row-click-navigation keyboard-support
     return (
       <tr
         draggable
@@ -182,3 +184,8 @@ export const IncidentsSection: React.FC<IncidentsSectionProps> = ({
     </section>
   );
 };
+
+/*
+APP_NOTES: UX and UI Behaviors
+- Row click navigation with keyboard support in IncidentsSection.tsx. This follows "discoverable, accessible navigation."
+*/

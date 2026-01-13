@@ -1,3 +1,5 @@
+// APP_NOTES: Shared Contract / Schema Safety
+// *** shared-schema-runtime-validation
 // shared runtime schema + types for the ws protocol
 // server + client both use this so contract stays aligned
 
@@ -92,3 +94,8 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
 
 export type ServerMessage = z.infer<typeof ServerMessageSchema>;
 export type ClientMessage = z.infer<typeof ClientMessageSchema>;
+
+/*
+APP_NOTES: Shared Contract / Schema Safety
+- Introduced Zod schemas in schema.ts and validated WebSocket messages on both client and server. This represents "shared schema + runtime validation," preventing silent contract drift.
+*/

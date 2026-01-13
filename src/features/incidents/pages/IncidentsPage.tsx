@@ -54,6 +54,8 @@ export const IncidentsPage: React.FC<IncidentsPageProps> = ({
 
   useEffect(() => {
     // keep url in sync w current filters
+    // APP_NOTES: UX and UI Behaviors
+    // *** url-synced-filters
     const next = new URLSearchParams(searchParams);
     if (selectedEscalation) {
       next.set('esc', selectedEscalation);
@@ -155,6 +157,8 @@ export const IncidentsPage: React.FC<IncidentsPageProps> = ({
       </PageHeader>
 
       <ConnectionBanner status={connectionStatus} />
+      {/* APP_NOTES: Real-Time Data and Robustness */}
+      {/* *** user-visible-error-state */}
       {lastError ? (
         <div className="app-error" role="alert">
           {lastError}
@@ -162,7 +166,11 @@ export const IncidentsPage: React.FC<IncidentsPageProps> = ({
       ) : null}
 
       {isLoading ? (
-        <p className="incidents-page__loading">Loading incidents...</p>
+        <>
+          {/* APP_NOTES: Todo */}
+          {/* *** todo-loading-icon */}
+          <p className="incidents-page__loading">Loading incidents...</p>
+        </>
       ) : (
         <main className="incidents-page__content">
           <IncidentsSection
@@ -209,3 +217,14 @@ export const IncidentsPage: React.FC<IncidentsPageProps> = ({
     </div>
   );
 };
+
+/*
+APP_NOTES: Real-Time Data and Robustness
+- Added connection error surfacing and server error messages to the UI in list pages. This is "user-visible error states" and a good operational UX.
+
+APP_NOTES: UX and UI Behaviors
+- Added URL-synced filters in IncidentsPage.tsx. This is "state encoded in URL" for shareability.
+
+APP_NOTES: Todo
+- Add a loading icon on pages.
+*/
